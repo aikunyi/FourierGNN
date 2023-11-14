@@ -1,4 +1,4 @@
-#FourierGNN: Rethinking Multivariate Time Series Forecasting from a Pure Graph Perspective
+# FourierGNN: Rethinking Multivariate Time Series Forecasting from a Pure Graph Perspective
 
 This repo is the official Pytorch implementation of ["FourierGNN: Rethinking Multivariate Time Series Forecasting from a Pure Graph Perspective"](https://arxiv.org/pdf/2311.06190.pdf).
 
