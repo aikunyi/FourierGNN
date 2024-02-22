@@ -1,6 +1,8 @@
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.model_selection import GroupShuffleSplit
 import os
+from os import walk
 import datetime
 import numpy as np
 import pandas as pd
@@ -242,3 +244,80 @@ class Dataset_Wiki(Dataset):
             return len(self.valData)-self.seq_len-self.pre_len
         else:
             return len(self.testData)-self.seq_len-self.pre_len
+        
+
+
+class Dataset_OFFWRIST(Dataset):
+    def __init__(self, root_path, flag, seq_len, pre_len, type, train_ratio, val_ratio):
+        assert flag in ['train', 'test', 'val']
+        self.path = root_path
+        self.flag = flag
+        self.seq_len = seq_len
+        self.pre_len = pre_len
+        self.feature_names = ['Value','White_Light','max_level_shift_41','max_var_shift_41','max_kl_shift_41','hurst_41','spike_41','std1st_der_41','lag10','lag20','lag30','lag40', 'entropy_121','max_level_shift_121','max_var_shift_121','max_kl_shift_121','hurst_121','spike_121','arch_acf_121','garch_acf_121','ARCH.LM_121','std1st_der_121']
+        self.labels_name = ['Label_final']
+        self.train_ratio = train_ratio
+        self.val_ratio = val_ratio
+        data = pd.DataFrame()
+        # li = []
+        # for (dirpath, dirnames, filenames) in walk(root_path):
+        #     for file in filenames:
+        #         if file.endswith(".csv"):
+        #             path = f"{root_path}/{file}"
+        #             df = pd.read_csv(path,low_memory=False).ffill().bfill()
+                    
+        #             df.dropna()
+        #             #values = ["ACTIVE", "REST", "EXCLUDED2"]
+                    
+        #             df[self.labels_name] = df[self.labels_name].replace({
+        #                 "ACTIVE":2,
+        #                 "REST": 1,
+        #                 "R?ST-S": 1,
+        #                 "EXCLUDED2":0,
+        #             })
+                    
+        #             li.append(df)             
+        # data = pd.concat(li)
+        # data.to_csv("all.csv")
+        # data = pd.read_csv("all.csv")
+        data = pd.read_csv("small_test_tomo_comobined_labeled.csv")
+
+        data_len = len(data)
+
+        train_data = data.iloc[:int(data_len*self.train_ratio)]
+        val_data = data.iloc[int(data_len*self.train_ratio):]
+
+        train_data_feature_df = train_data.loc[:,self.feature_names].astype(np.float32).values
+        train_data_label_df = train_data.loc[:,self.labels_name].astype(np.int8).values
+
+        val_data_feature_df = val_data.loc[:,self.feature_names].astype(np.float32).values
+        val_data_label_df = val_data.loc[:,self.labels_name].astype(np.int8).values
+
+
+        mms = MinMaxScaler(feature_range=(0, 1))
+
+        self.trainData = mms.fit_transform(train_data_feature_df)
+        self.trainLabel = train_data_label_df
+        self.valData = mms.fit_transform(val_data_feature_df)
+        self.valLabel = val_data_label_df
+        
+
+    def __getitem__(self, index):
+        x = None
+        y = None
+        if self.flag == 'train':
+            x = self.trainData[index]
+            y = self.trainLabel[index]
+        elif self.flag == 'val':
+            
+            x = self.valData[index]
+            y = self.valLabel[index]
+        
+        return x, y
+
+    def __len__(self):
+        # minus the label length
+        if self.flag == 'train':
+            return len(self.trainData)
+        elif self.flag == 'val':
+            return len(self.valData)

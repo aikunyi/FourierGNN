@@ -36,8 +36,9 @@ class FGN(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(64, self.hidden_size),
             nn.LeakyReLU(),
-            nn.Linear(self.hidden_size, self.pre_length)
+            nn.Linear(self.hidden_size,self.pre_length)
         )
+        self.output= nn.Linear(self.feature_size,3)
         self.to('cuda:0')
 
     def tokenEmb(self, x):
@@ -110,7 +111,11 @@ class FGN(nn.Module):
         return z
 
     def forward(self, x):
+        
         x = x.permute(0, 2, 1).contiguous()
+        #B is batch
+        #N is the number of series (variates)
+        #L length of input window
         B, N, L = x.shape
         # B*N*L ==> B*NL
         x = x.reshape(B, -1)
@@ -123,7 +128,7 @@ class FGN(nn.Module):
         x = x.reshape(B, (N*L)//2+1, self.frequency_size)
 
         bias = x
-
+        
         # FourierGNN
         x = self.fourierGC(x, B, N, L)
 
@@ -137,10 +142,15 @@ class FGN(nn.Module):
         x = x.reshape(B, N, L, self.embed_size)
         x = x.permute(0, 1, 3, 2)  # B, N, D, L
 
+    
         # projection
         x = torch.matmul(x, self.embeddings_10)
         x = x.reshape(B, N, -1)
+        
         x = self.fc(x)
-
-        return x
+        reshaped_input = x.view(-1, self.feature_size)
+        transformed = self.output(reshaped_input)
+        transformed = transformed.view(B,3,self.pre_length)
+        
+        return transformed
 
