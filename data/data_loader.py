@@ -19,7 +19,9 @@ class Dataset_Dhfm(Dataset):
         data = load_data.transpose()
         if type == '1':
             mms = MinMaxScaler(feature_range=(0, 1))
-            data = mms.fit_transform(data)
+            training_end = int(len(data) * self.train_ratio)
+            mms.fit(data[:training_end])
+            data = mms.transform(data)
         if self.flag == 'train':
             begin = 0
             end = int(len(data) * self.train_ratio)
@@ -70,7 +72,9 @@ class Dataset_ECG(Dataset):
 
         if type == '1':
             mms = MinMaxScaler(feature_range=(0, 1))
-            data = mms.fit_transform(data)
+            training_end = int(len(data) * self.train_ratio)
+            mms.fit(data[:training_end])
+            data = mms.transform(data)
         data = np.array(data)
         if self.flag == 'train':
             begin = 0
@@ -144,7 +148,9 @@ class Dataset_Solar(Dataset):
 
         if type == '1':
             mms = MinMaxScaler(feature_range=(0, 1))
-        self.data = mms.fit_transform(self.data)
+            training_end = int(len(data) * self.train_ratio)
+            mms.fit(data[:training_end])
+            data = mms.transform(data)
         if self.flag == 'train':
             begin = 0
             end = int(len(self.data)*self.train_ratio)
@@ -200,7 +206,9 @@ class Dataset_Wiki(Dataset):
         self.data = df.dropna(axis=0, how='any').values.transpose()
         if type == '1':
             mms = MinMaxScaler(feature_range=(0, 1))
-            self.data = mms.fit_transform(self.data)
+            training_end = int(len(data) * self.train_ratio)
+            mms.fit(data[:training_end])
+            data = mms.transform(data)
         if self.flag == 'train':
             begin = 0
             end = int(len(self.data)*self.train_ratio)

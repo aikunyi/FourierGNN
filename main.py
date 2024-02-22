@@ -118,8 +118,6 @@ def validate(model, vali_loader):
         y = y.detach().cpu().numpy()  # .squeeze()
         preds.append(forecast)
         trues.append(y)
-    preds = np.array(preds)
-    trues = np.array(trues)
     preds = np.concatenate(preds, axis=0)
     trues = np.concatenate(trues, axis=0)
     score = evaluate(trues, preds)
@@ -144,8 +142,6 @@ def test():
         preds.append(forecast)
         trues.append(y)
 
-    preds = np.array(preds)
-    trues = np.array(trues)
     preds = np.concatenate(preds, axis=0)
     trues = np.concatenate(trues, axis=0)
     score = evaluate(trues, preds)
